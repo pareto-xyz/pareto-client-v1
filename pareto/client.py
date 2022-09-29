@@ -87,7 +87,7 @@ class PublicClient:
             'strike': strike,
             'isCall': order_type,
         }
-        return self._get(uri, params)
+        return self._get(uri, params=params)
 
     def get_expiry(self, underlying):
         r"""Endpoint to get the active expiry of the order book.
@@ -118,7 +118,7 @@ class PublicClient:
             'isCall': order_type,
             'isBuy': order_side,
         }
-        return self._get(uri, params)
+        return self._get(uri, params=params)
 
     def get_price(self,
                   underlying,
@@ -149,7 +149,7 @@ class PublicClient:
             'isCall': order_type,
             'isBuy': order_side,
         }
-        return self._get(uri, params)
+        return self._get(uri, params=params)
 
     def get_strikes(self, underlying):
         r"""Endpoint to get market price of a potential order.
@@ -187,7 +187,7 @@ class PublicClient:
             'strike': strike,
             'isCall': order_type,
         }
-        return self._get(uri, params)
+        return self._get(uri, params=params)
 
     def get_breakeven(self,
                       underlying,
@@ -213,7 +213,7 @@ class PublicClient:
             'isCall': order_type,
             'isBuy': order_side,
         }
-        return self._get(uri, params)
+        return self._get(uri, params=params)
 
     def get_initial_margin_new_order(self,
                                      underlying,
@@ -244,7 +244,7 @@ class PublicClient:
             'isCall': order_type,
             'isBuy': order_side,
         }
-        return self._get(uri, params)
+        return self._get(uri, params=params)
 
 
 class PrivateClient:
@@ -260,3 +260,85 @@ class PrivateClient:
         self.signer = signer
         self.timeout = timeout
         self.session = create_session()
+
+    def _get(self, request_path, secret_message, headers=None, params={}):
+        r"""General GET request
+        Arguments:
+        --
+        request_path (string): Endpoint e.g. /ping. Includes URI params
+        secret_message (string): Private message for signing a request
+        params (Dict[string, any]): Map of query parameters
+        """
+        uri = get_query_path(f'{self.host}{request_path}', params)
+        if headers is None:
+            headers = {}
+        headers = self.signer.add_headers(secret_message, headers)
+        return make_request(self.session,
+                            uri,
+                            'GET',
+                            headers=headers,
+                            timeout=self.timeout,
+                            )
+
+    def get_order_by_id(self, underlying, id):
+        r"""Endpoint to get order by id.
+        Arguments:
+        --
+        underlying: see `constants.VALID_UNDERLYING`
+        id: String identifier
+        """
+        assert underlying in constants.VALID_UNDERLYING
+        uri = f'/user/order/{underlying}/{id}'
+        return self._get(uri, constants.GET_ORDER_BY_ID_MESSAGE)
+
+    def get_orders(self, underlying):
+        r"""Endpoint to get unmatched (open) orders owned by caller.
+        Does not return any matched or expired orders.
+        Arguments:
+        --
+        underlying: see `constants.VALID_UNDERLYING`
+        """
+        assert underlying in constants.VALID_UNDERLYING
+        uri = f'/user/orders/{underlying}'
+        return self._get(uri, constants.GET_ORDERS_MESSAGE)
+
+    def get_positions(self, underlying):
+        r"""Endpoint to get positions owned by caller.
+        Does not return any open (unmatched) orders.
+        Arguments:
+        --
+        underlying: see `constants.VALID_UNDERLYING`
+        """
+        assert underlying in constants.VALID_UNDERLYING
+        uri = f'/user/positions/{underlying}'
+        return self._get(uri, constants.GET_POSITIONS_MESSAGE)
+
+    def get_open_interest(self, underlying):
+        r"""Endpoint to get open interest of caller's margin account.
+        Arguments:
+        --
+        underlying: see `constants.VALID_UNDERLYING`
+        """
+        assert underlying in constants.VALID_UNDERLYING
+        uri = f'/user/openinterest/{underlying}'
+        return self._get(uri, constants.GET_OPEN_INTEREST_MESSAGE)
+
+    def get_available_balance(self, underlying):
+        r"""Endpoint to get available balance in caller's margin account.
+        Arguments:
+        --
+        underlying: see `constants.VALID_UNDERLYING`
+        """
+        assert underlying in constants.VALID_UNDERLYING
+        uri = f'/user/availbalance/{underlying}'
+        return self._get(uri, constants.GET_AVAILABLE_BALANCE_MESSAGE)
+
+    def get_account_info(self, underlying):
+        r"""Endpoint to get information on caller's margin account.
+        Arguments:
+        --
+        underlying: see `constants.VALID_UNDERLYING`
+        """
+        assert underlying in constants.VALID_UNDERLYING
+        uri = f'/user/accountinfo/{underlying}'
+        return self._get(uri, constants.GET_ACCOUNT_INFO_MESSAGE)

@@ -18,3 +18,9 @@ class Signer:
         signed_message = Account.sign_message(message_hash, 
                                               self._private_key)
         return signed_message.signature
+
+    def add_headers(self, message, header={}):
+        signature = self.sign(message)
+        header['address'] = self.address
+        header['signature'] = signature
+        return header
