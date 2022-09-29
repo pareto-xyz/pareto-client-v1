@@ -261,22 +261,42 @@ class PrivateClient:
         self.timeout = timeout
         self.session = create_session()
 
-    def _get(self, request_path, secret_message, headers=None, params={}):
+    def _get(self, request_path, request_message, headers=None, params={}):
         r"""General GET request
         Arguments:
         --
         request_path (string): Endpoint e.g. /ping. Includes URI params
-        secret_message (string): Private message for signing a request
-        params (Dict[string, any]): Map of query parameters
+        request_message (string): Message for signing a request. See `constants.*_MESSAGE`.
+        params (Dict[string, any]): Dictionary of query parameters
         """
         uri = get_query_path(f'{self.host}{request_path}', params)
         if headers is None:
             headers = {}
-        headers = self.signer.add_headers(secret_message, headers)
+        headers = self.signer.add_headers(request_message, headers)
         return make_request(self.session,
                             uri,
                             'GET',
                             headers=headers,
+                            timeout=self.timeout,
+                            )
+
+    def _post(self, request_path, request_message, headers=None, body={}):
+        r"""General POST request
+        Arguments:
+        --
+        request_path (string): Endpoint e.g. /ping. Includes URI params
+        request_message (string): Message for signing a request. See `constants.*_MESSAGE`.
+        body (Dict[string, any]): Dictionary of body parameters
+        """
+        uri = f'{self.host}{request_path}'
+        if headers is None:
+            headers = {}
+        headers = self.signer.add_headers(request_message, headers)
+        return make_request(self.session,
+                            uri,
+                            'POST',
+                            headers,
+                            body,
                             timeout=self.timeout,
                             )
 
@@ -342,3 +362,80 @@ class PrivateClient:
         assert underlying in constants.VALID_UNDERLYING
         uri = f'/user/accountinfo/{underlying}'
         return self._get(uri, constants.GET_ACCOUNT_INFO_MESSAGE)
+
+    def create_market_order(self,
+                            underlying,
+                            strike,
+                            quantity,
+                            order_type,
+                            order_side,
+                            ):
+        r"""Endpoint to create a new market order.
+        Arguments:
+        --
+        underlying: see `constants.VALID_UNDERLYING`
+        quantity (integer): Number of units in order. Rounded to nearest 0.01.
+        strike: see `constants.VALID_STRIKE`
+        order_type: see `constants.VALID_ORDER_TYPE`
+        order_side: see `constants.VALID_ORDER_SIDE`
+        """
+        assert underlying in constants.VALID_UNDERLYING
+        assert strike in constants.VALID_STRIKE
+        assert order_type in constants.VALID_ORDER_TYPE
+        assert order_side in constants.VALID_ORDER_SIDE
+        quantity = round(quantity, 2)
+        assert quantity > 0
+        uri = f'/user/create/market/{underlying}'
+        body = {
+            'strike': strike,
+            'quantity': quantity,
+            'isCall': order_type,
+            'isBuy': order_side,
+        }
+        return self._post(uri,
+                          constants.MARKET_ORDER_MESSAGE,
+                          body=body)
+
+    def create_limit_order(self,
+                           underlying,
+                           strike,
+                           quantity,
+                           order_type,
+                           order_side,
+                           ):
+        r"""Endpoint to create a new limit order.
+        Arguments:
+        --
+        underlying: see `constants.VALID_UNDERLYING`
+        quantity (integer): Number of units in order. Rounded to nearest 0.01.
+        strike: see `constants.VALID_STRIKE`
+        order_type: see `constants.VALID_ORDER_TYPE`
+        order_side: see `constants.VALID_ORDER_SIDE`
+        """
+        assert underlying in constants.VALID_UNDERLYING
+        assert strike in constants.VALID_STRIKE
+        assert order_type in constants.VALID_ORDER_TYPE
+        assert order_side in constants.VALID_ORDER_SIDE
+        quantity = round(quantity, 2)
+        assert quantity > 0
+        uri = f'/user/create/limit/{underlying}'
+        body = {
+            'strike': strike,
+            'quantity': quantity,
+            'isCall': order_type,
+            'isBuy': order_side,
+        }
+        return self._post(uri,
+                          constants.LIMIT_ORDER_MESSAGE,
+                          body=body)
+
+    def cancel_order(self, underlying, id):
+        r"""Endpoint to cancel an existing order.
+        Arguments:
+        --
+        underlying: see `constants.VALID_UNDERLYING`
+        id: String identifier
+        """
+        assert underlying in constants.VALID_UNDERLYING
+        uri = f'/user/cancel/{underlying}/{id}'
+        return self._post(uri, constants.CANCEL_ORDER_MESSAGE)
