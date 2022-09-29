@@ -17,7 +17,7 @@ We recommend reading our [documentation](gitbook link) for an overview. This rep
 
 No authentication information is required to access public endpoints. 
 
-```
+```python
 from pareto import Client
 
 # 
@@ -31,7 +31,7 @@ client.public.ping()
 
 We require the user to provide their ETH private key, which the client uses to generate signatures for actions in the Pareto API that require authentication. The private key is not stored and is not send to the backend in any HTTP requests (only signatures are sent as header messages). 
 
-```
+```python
 from pareto import Client
 from pareto import UNDERLYING_ETH
 
