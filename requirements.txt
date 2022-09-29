@@ -1,0 +1,2 @@
+eth_account==0.5.9
+requests==2.28.1
