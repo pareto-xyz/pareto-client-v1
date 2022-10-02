@@ -60,12 +60,12 @@ def make_request(session,
     body (Dict[string, any], default={}): Body data
     timeout (integer, default=3000): Maximum seconds to wait before timeout
     """
-    assert method in ['GET', 'POST'], f'method {method} not supported'
-    response = getattr(session, method)(uri, 
-                                        headers=headers,
-                                        data=body,
-                                        timeout=timeout,
-                                        )
+    assert method.upper() in ['GET', 'POST'], f'method {method} not supported'
+    response = getattr(session, method.lower())(uri, 
+                                                headers=headers,
+                                                data=body,
+                                                timeout=timeout,
+                                                )
     if not str(response.status_code).startswith('2'):
         raise ParetoAPIError(response)
 

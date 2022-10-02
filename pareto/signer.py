@@ -39,9 +39,14 @@ class Signer:
                                               self._private_key)
         return signed_message.signature
 
-    def add_headers(self, message, header={}):
+    def add_headers(self,
+                    method,
+                    uri,
+                    body,
+                    header={},
+                    ):
         timestamp = int(time.time())
-        signature = self.sign(message)
+        signature = self.sign(method, uri, body, timestamp)
         header['pareto-ethereum-address'] = self.address
         header['pareto-signature'] = signature
         header['pareto-timestamp'] = timestamp

@@ -261,18 +261,21 @@ class PrivateClient:
         self.timeout = timeout
         self.session = create_session()
 
-    def _get(self, request_path, request_message, headers=None, params={}):
+    def _get(self, request_path, headers=None, params={}):
         r"""General GET request
         Arguments:
         --
         request_path (string): Endpoint e.g. /ping. Includes URI params
-        request_message (string): Message for signing a request. See `constants.*_MESSAGE`.
         params (Dict[string, any]): Dictionary of query parameters
         """
         uri = get_query_path(f'{self.host}{request_path}', params)
         if headers is None:
             headers = {}
-        headers = self.signer.add_headers(request_message, headers)
+        headers = self.signer.add_headers('GET',
+                                          request_path, 
+                                          {},
+                                          headers,
+                                          )
         return make_request(self.session,
                             uri,
                             'GET',
@@ -291,7 +294,11 @@ class PrivateClient:
         uri = f'{self.host}{request_path}'
         if headers is None:
             headers = {}
-        headers = self.signer.add_headers(request_message, headers)
+        headers = self.signer.add_headers('POST',
+                                          request_path, 
+                                          body,
+                                          headers,
+                                          )
         return make_request(self.session,
                             uri,
                             'POST',
