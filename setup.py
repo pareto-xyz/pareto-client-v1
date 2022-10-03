@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 LONG_DESCRIPTION = open("README.md", "r").read()
 
 setup(
-    name="pareto-client-v1",
+    name="pareto-client",
     version="0.1.0",
     author="grubiroth",
     author_email="mike@paretolabs.xyz",

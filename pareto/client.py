@@ -261,18 +261,21 @@ class PrivateClient:
         self.timeout = timeout
         self.session = create_session()
 
-    def _get(self, request_path, request_message, headers=None, params={}):
+    def _get(self, request_path, headers=None, params={}):
         r"""General GET request
         Arguments:
         --
         request_path (string): Endpoint e.g. /ping. Includes URI params
-        request_message (string): Message for signing a request. See `constants.*_MESSAGE`.
         params (Dict[string, any]): Dictionary of query parameters
         """
         uri = get_query_path(f'{self.host}{request_path}', params)
         if headers is None:
             headers = {}
-        headers = self.signer.add_headers(request_message, headers)
+        headers = self.signer.add_headers('GET',
+                                          request_path, 
+                                          {},
+                                          headers,
+                                          )
         return make_request(self.session,
                             uri,
                             'GET',
@@ -291,7 +294,11 @@ class PrivateClient:
         uri = f'{self.host}{request_path}'
         if headers is None:
             headers = {}
-        headers = self.signer.add_headers(request_message, headers)
+        headers = self.signer.add_headers('POST',
+                                          request_path, 
+                                          body,
+                                          headers,
+                                          )
         return make_request(self.session,
                             uri,
                             'POST',
@@ -309,7 +316,7 @@ class PrivateClient:
         """
         assert underlying in constants.VALID_UNDERLYING
         uri = f'/user/order/{underlying}/{id}'
-        return self._get(uri, constants.GET_ORDER_BY_ID_MESSAGE)
+        return self._get(uri)
 
     def get_orders(self, underlying):
         r"""Endpoint to get unmatched (open) orders owned by caller.
@@ -320,7 +327,7 @@ class PrivateClient:
         """
         assert underlying in constants.VALID_UNDERLYING
         uri = f'/user/orders/{underlying}'
-        return self._get(uri, constants.GET_ORDERS_MESSAGE)
+        return self._get(uri)
 
     def get_positions(self, underlying):
         r"""Endpoint to get positions owned by caller.
@@ -331,7 +338,7 @@ class PrivateClient:
         """
         assert underlying in constants.VALID_UNDERLYING
         uri = f'/user/positions/{underlying}'
-        return self._get(uri, constants.GET_POSITIONS_MESSAGE)
+        return self._get(uri)
 
     def get_open_interest(self, underlying):
         r"""Endpoint to get open interest of caller's margin account.
@@ -341,7 +348,7 @@ class PrivateClient:
         """
         assert underlying in constants.VALID_UNDERLYING
         uri = f'/user/openinterest/{underlying}'
-        return self._get(uri, constants.GET_OPEN_INTEREST_MESSAGE)
+        return self._get(uri)
 
     def get_available_balance(self, underlying):
         r"""Endpoint to get available balance in caller's margin account.
@@ -351,7 +358,7 @@ class PrivateClient:
         """
         assert underlying in constants.VALID_UNDERLYING
         uri = f'/user/availbalance/{underlying}'
-        return self._get(uri, constants.GET_AVAILABLE_BALANCE_MESSAGE)
+        return self._get(uri)
 
     def get_account_info(self, underlying):
         r"""Endpoint to get information on caller's margin account.
@@ -361,7 +368,7 @@ class PrivateClient:
         """
         assert underlying in constants.VALID_UNDERLYING
         uri = f'/user/accountinfo/{underlying}'
-        return self._get(uri, constants.GET_ACCOUNT_INFO_MESSAGE)
+        return self._get(uri)
 
     def create_market_order(self,
                             underlying,
@@ -400,6 +407,7 @@ class PrivateClient:
                            underlying,
                            strike,
                            quantity,
+                           price,
                            order_type,
                            order_side,
                            ):
@@ -407,7 +415,8 @@ class PrivateClient:
         Arguments:
         --
         underlying: see `constants.VALID_UNDERLYING`
-        quantity (integer): Number of units in order. Rounded to nearest 0.01.
+        quantity (float): Number of units in order. Rounded to nearest 0.01.
+        price (float): Price for the limit order. Rounded to nearest 0.01.
         strike: see `constants.VALID_STRIKE`
         order_type: see `constants.VALID_ORDER_TYPE`
         order_side: see `constants.VALID_ORDER_SIDE`
@@ -418,10 +427,13 @@ class PrivateClient:
         assert order_side in constants.VALID_ORDER_SIDE
         quantity = round(quantity, 2)
         assert quantity > 0
+        price = round(price, 2)
+        assert price > 0
         uri = f'/user/create/limit/{underlying}'
         body = {
             'strike': strike,
             'quantity': quantity,
+            'price': price,
             'isCall': order_type,
             'isBuy': order_side,
         }
@@ -438,4 +450,4 @@ class PrivateClient:
         """
         assert underlying in constants.VALID_UNDERLYING
         uri = f'/user/cancel/{underlying}/{id}'
-        return self._post(uri, constants.CANCEL_ORDER_MESSAGE)
+        return self._post(uri)
