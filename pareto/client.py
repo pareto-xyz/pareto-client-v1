@@ -463,7 +463,7 @@ class PrivateClient:
         uri = f'/user/cancel/{underlying}/{id}'
         return self._post(uri)
 
-    def cancel_order_batch(self, underlying, ids):
+    def cancel_batch(self, underlying, ids):
         r"""Endpoint to cancel a batch of orders
         Arguments:
         --
@@ -474,3 +474,13 @@ class PrivateClient:
         uri = f'/user/cancel/batch/{underlying}'
         body = {'ids': ids}
         return self._post(uri, body=body)
+
+    def cancel_all(self, underlying):
+        r"""Endpoint to cancel all open orders
+        Arguments:
+        --
+        underlying: see `constants.VALID_UNDERLYING`
+        """
+        assert underlying in constants.VALID_UNDERLYING
+        uri = f'/user/cancel/all/{underlying}'
+        return self._post(uri)
