@@ -283,12 +283,11 @@ class PrivateClient:
                             timeout=self.timeout,
                             )
 
-    def _post(self, request_path, request_message, headers=None, body={}):
+    def _post(self, request_path, headers=None, body={}):
         r"""General POST request
         Arguments:
         --
         request_path (string): Endpoint e.g. /ping. Includes URI params
-        request_message (string): Message for signing a request. See `constants.*_MESSAGE`.
         body (Dict[string, any]): Dictionary of body parameters
         """
         uri = f'{self.host}{request_path}'
@@ -399,9 +398,7 @@ class PrivateClient:
             'isCall': order_type,
             'isBuy': order_side,
         }
-        return self._post(uri,
-                          constants.MARKET_ORDER_MESSAGE,
-                          body=body)
+        return self._post(uri, body=body)
 
     def create_limit_order(self,
                            underlying,
@@ -437,9 +434,7 @@ class PrivateClient:
             'isCall': order_type,
             'isBuy': order_side,
         }
-        return self._post(uri,
-                          constants.LIMIT_ORDER_MESSAGE,
-                          body=body)
+        return self._post(uri, body=body)
 
     def cancel_order(self, underlying, id):
         r"""Endpoint to cancel an existing order.
