@@ -1,4 +1,5 @@
-import time
+import time, json
+from simplejson.encoder import JSONEncoderForHTML
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
@@ -27,6 +28,7 @@ class Signer:
         body (Object): Body of the request
         timestamp (integer): Timestamp of the request
         """
+        body = json.dumps(body)
         # https://eth-account.readthedocs.io/en/stable/eth_account.html#eth_account.account.Account.sign_message
         message = {
             'method': method,
@@ -34,20 +36,15 @@ class Signer:
             'body': body,
             'timestamp': timestamp,
         }
-        message_hash = encode_defunct(message)
-        signed_message = Account.sign_message(message_hash, 
-                                              self._private_key)
-        return signed_message.signature
+        text = JSONEncoderForHTML(separators=(',', ':')).encode(message)
+        message_hash = encode_defunct(text=text)
+        signed_message = Account.sign_message(message_hash, self._private_key)
+        return signed_message.signature.hex()
 
-    def add_headers(self,
-                    method,
-                    uri,
-                    body,
-                    header={},
-                    ):
+    def add_headers(self, method, uri, body, header={},):
         timestamp = int(time.time())
         signature = self.sign(method, uri, body, timestamp)
         header['pareto-ethereum-address'] = self.address
         header['pareto-signature'] = signature
-        header['pareto-timestamp'] = timestamp
+        header['pareto-timestamp'] = str(timestamp)
         return header

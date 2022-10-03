@@ -57,13 +57,13 @@ def make_request(session,
     session (request.Session): Session instance
     uri (string): full URI endpoint
     headers (Optional[Dict[string, any]], default=None): Header information
-    body (Dict[string, any], default={}): Body data
+    body (Dict[string, any], default={}): Body data. Send as `json` attribute
     timeout (integer, default=3000): Maximum seconds to wait before timeout
     """
     assert method.upper() in ['GET', 'POST'], f'method {method} not supported'
     response = getattr(session, method.lower())(uri, 
                                                 headers=headers,
-                                                data=body,
+                                                json=body,
                                                 timeout=timeout,
                                                 )
     if not str(response.status_code).startswith('2'):
