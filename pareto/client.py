@@ -272,7 +272,7 @@ class PrivateClient:
         if headers is None:
             headers = {}
         headers = self.signer.add_headers('GET',
-                                          request_path, 
+                                          get_query_path(request_path, params),
                                           {},
                                           headers,
                                           )
@@ -339,15 +339,31 @@ class PrivateClient:
         uri = f'/user/positions/{underlying}'
         return self._get(uri)
 
-    def get_open_interest(self, underlying):
+    def get_open_interest(self,
+                          underlying,
+                          strike,
+                          order_type,
+                          order_side,
+                          ):
         r"""Endpoint to get open interest of caller's margin account.
         Arguments:
         --
         underlying: see `constants.VALID_UNDERLYING`
+        strike: see `constants.VALID_STRIKE`
+        order_type: see `constants.VALID_ORDER_TYPE`
+        order_side: see `constants.VALID_ORDER_SIDE`
         """
         assert underlying in constants.VALID_UNDERLYING
+        assert strike in constants.VALID_STRIKE
+        assert order_type in constants.VALID_ORDER_TYPE
+        assert order_side in constants.VALID_ORDER_SIDE
         uri = f'/user/openinterest/{underlying}'
-        return self._get(uri)
+        params = {
+            'strike': strike,
+            'isCall': order_type,
+            'isBuy': order_side,
+        }
+        return self._get(uri, params=params)
 
     def get_available_balance(self, underlying):
         r"""Endpoint to get available balance in caller's margin account.
