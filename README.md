@@ -1,6 +1,8 @@
-# Pareto Python Client v1
+# Pareto Order Book Python Client v1
 
-Python client for Pareto v1 API. The library requires Python 3. 
+**[Disclaimer: This repository is no longer maintained and is meant for primarily educational purposes.]**
+
+Python client for Pareto v1 API. Part of the series detailed in this [whitepaper](https://github.com/pareto-xyz/pareto-order-book-whitepaper/blob/main/how_to_orderbook.pdf). 
 
 ## Installation
 
